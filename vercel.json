@@ -1,0 +1,12 @@
+{
+    "rewrites": [
+        {
+            "source": "/api",
+            "destination": "https://zeldvorik.ru/apiv3/api.php"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
+}
