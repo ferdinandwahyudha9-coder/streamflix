@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamFlix - Nonton Film & Series Gratis</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #e50914; --primary-dark: #b20710; --bg-dark: #141414;
+            --bg-card: #1f1f1f; --text-primary: #ffffff; --text-secondary: #999999;
+        }
+        body { font-family: 'Work Sans', sans-serif; background: var(--bg-dark); color: var(--text-primary); }
+        .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: linear-gradient(180deg, rgba(20, 20, 20, 0.95) 0%, transparent 100%); backdrop-filter: blur(10px); padding: 1rem 4%; }
+        .nav-content { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 2rem; }
+        .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--primary); cursor: pointer; }
+        .search-box { flex: 1; max-width: 500px; }
+        .search-input { width: 100%; padding: 0.7rem 1rem; background: rgba(255, 255, 255, 0.1); border: 1px solid transparent; border-radius: 4px; color: white; outline: none; }
+        .search-input:focus { background: rgba(255, 255, 255, 0.15); border-color: var(--primary); }
+        .hero { position: relative; height: 70vh; min-height: 450px; margin-top: 60px; display: flex; align-items: flex-end; padding: 4%; background-size: cover; background-position: center; }
+        .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-dark) 0%, transparent 60%); }
+        .hero-content { position: relative; max-width: 600px; z-index: 10; }
+        .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2rem, 5vw, 4rem); margin-bottom: 1rem; text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8); }
+        .hero-desc { font-size: clamp(0.9rem, 2vw, 1.1rem); color: var(--text-secondary); margin-bottom: 1.5rem; }
+        .hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .btn { padding: 0.75rem 2rem; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: rgba(109, 109, 110, 0.7); color: white; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem 4%; }
+        .category-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; overflow-x: auto; scrollbar-width: none; }
+        .category-tab { padding: 0.6rem 1.5rem; background: var(--bg-card); border: none; border-radius: 20px; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: all 0.3s; }
+        .category-tab.active { background: var(--primary); color: white; }
+        .movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.5rem; }
+        .movie-card { cursor: pointer; transition: transform 0.3s; border-radius: 8px; overflow: hidden; background: var(--bg-card); }
+        .movie-card:hover { transform: translateY(-8px); }
+        .movie-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+        .movie-info { padding: 0.75rem; }
+        .movie-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .movie-meta { font-size: 0.8rem; color: var(--text-secondary); display: flex; gap: 0.5rem; }
+        .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; overflow-y: auto; }
+        .modal-content { background: var(--bg-card); border-radius: 8px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { height: 400px; background-size: cover; background-position: center; position: relative; }
+        .modal-header::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-card) 0%, transparent 50%); }
+        .modal-close { position: absolute; top: 1rem; right: 1rem; background: rgba(0, 0, 0, 0.7); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; z-index: 10; }
+        .modal-body { padding: 2rem; }
+        .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; margin-bottom: 1rem; }
+        .modal-meta { display: flex; gap: 1rem; margin-bottom: 1rem; color: var(--text-secondary); }
+        .modal-desc { line-height: 1.6; margin-bottom: 1.5rem; }
+        .genres { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .genre-tag { padding: 0.4rem 1rem; background: rgba(255, 255, 255, 0.1); border-radius: 20px; font-size: 0.85rem; }
+        .episodes { margin-top: 2rem; }
+        .episodes-title { font-size: 1.3rem; margin-bottom: 1rem; }
+        .episodes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+        .episode-item { background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
+        .episode-item:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--primary); }
+        .episode-number { font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 0.25rem; }
+        .episode-title { font-size: 0.95rem; }
+        .fullscreen-player { position: fixed; inset: 0; background: black; z-index: 3000; display: flex; flex-direction: column; }
+        .player-header { background: rgba(0, 0, 0, 0.9); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .player-title { font-size: 1.2rem; font-weight: 600; }
+        .player-close { background: var(--primary); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; }
+        .player-iframe { flex: 1; width: 100%; border: none; }
+        .skeleton { background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 8px; }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .warning-box { background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.5); color: #ffc107; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+        @media (max-width: 768px) {
+            .movies-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; }
+            .episodes-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const API_BASE = 'http://localhost:5500/api'; // Changed to 5500
+
+        const api = {
+            home: () => fetch(`${API_BASE}/home`).then(r => r.json()),
+            category: (type) => fetch(`${API_BASE}/category/${type}`).then(r => r.json()),
+            search: (q) => fetch(`${API_BASE}/search/${encodeURIComponent(q)}`).then(r => r.json()),
+            detail: (path) => fetch(`${API_BASE}/detail${path}`).then(r => r.json())
+        };
+
+        function App() {
+            const [items, setItems] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [selectedItem, setSelectedItem] = useState(null);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [activeCategory, setActiveCategory] = useState('home');
+
+            useEffect(() => { loadContent(); }, [activeCategory]);
+
+            const loadContent = async () => {
+                setLoading(true);
+                try {
+                    const data = await (activeCategory === 'home' ? api.home() : api.category(activeCategory));
+                    setItems(data.data || data.results || []);
+                    setLoading(false);
+                } catch (err) { console.error(err); setLoading(false); }
+            };
+
+            const handleSearch = async (e) => {
+                e.preventDefault();
+                if (!searchQuery.trim()) return;
+                setLoading(true);
+                try {
+                    const data = await api.search(searchQuery);
+                    setItems(data.data || data.results || []);
+                    setActiveCategory('search');
+                    setLoading(false);
+                } catch (err) { setLoading(false); }
+            };
+
+            const heroItem = items[0];
+
+            return (
+                <>
+                    <nav className="navbar">
+                        <div className="nav-content">
+                            <div className="logo" onClick={() => { setActiveCategory('home'); setSearchQuery(''); }}>STREAMFLIX</div>
+                            <form className="search-box" onSubmit={handleSearch}>
+                                <input type="text" className="search-input" placeholder="Cari film atau series..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                            </form>
+                        </div>
+                    </nav>
+
+                    {heroItem && activeCategory === 'home' && (
+                        <div className="hero" style={{ backgroundImage: `url(${heroItem.poster})` }}>
+                            <div className="hero-content">
+                                <h1 className="hero-title">{heroItem.title}</h1>
+                                <p className="hero-desc">{heroItem.rating && `⭐ ${heroItem.rating}`}{heroItem.year && ` • ${heroItem.year}`}</p>
+                                <div className="hero-buttons">
+                                    <button className="btn btn-primary" onClick={() => setSelectedItem(heroItem)}>▶ Tonton Sekarang</button>
+                                    <button className="btn btn-secondary" onClick={() => setSelectedItem(heroItem)}>ℹ Info Lengkap</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="container">
+                        <div className="category-tabs">
+                            {['home', 'movie', 'series', 'anime', 'drakor'].map(cat => (
+                                <button key={cat} className={`category-tab ${activeCategory === cat ? 'active' : ''}`} onClick={() => setActiveCategory(cat)}>
+                                    {cat === 'home' ? '🏠 Beranda' : cat === 'movie' ? '🎬 Film' : cat === 'series' ? '📺 Series' : cat === 'anime' ? '🎌 Anime' : '🇰🇷 Drakor'}
+                                </button>
+                            ))}
+                        </div>
+
+                        {loading ? (
+                            <div className="movies-grid">
+                                {[...Array(12)].map((_, i) => (
+                                    <div key={i} className="movie-card"><div className="skeleton" style={{ aspectRatio: '2/3' }}></div></div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="movies-grid">
+                                {items.map((item, i) => (
+                                    <div key={i} className="movie-card" onClick={() => setSelectedItem(item)}>
+                                        <img src={item.poster} alt={item.title} className="movie-poster" />
+                                        <div className="movie-info">
+                                            <div className="movie-title">{item.title}</div>
+                                            <div className="movie-meta">
+                                                {item.rating && <span>⭐ {item.rating}</span>}
+                                                {item.year && <span>{item.year}</span>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {selectedItem && <DetailModal item={selectedItem} onClose={() => setSelectedItem(null)} />}
+                </>
+            );
+        }
+
+        function DetailModal({ item, onClose }) {
+            const [detail, setDetail] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [playing, setPlaying] = useState(false);
+            const [currentPlayer, setCurrentPlayer] = useState(null);
+
+            useEffect(() => {
+                api.detail(item.detailPath).then(data => {
+                    setDetail(data);
+                    const playerUrl = data.playerUrl || data.streamUrl || data.embed || data.data?.playerUrl || data.data?.streamUrl || data.data?.embed || data.movie?.playerUrl || null;
+                    setCurrentPlayer({ url: playerUrl, title: item.title, episode: null });
+                    setLoading(false);
+                });
+            }, [item]);
+
+            const getEpisodes = () => {
+                if (!detail) return [];
+                return detail.episodes || detail.data?.episodes || detail.episodeList || detail.data?.episodeList || detail.seasons?.[0]?.episodes || [];
+            };
+
+            const episodes = getEpisodes();
+
+            const playVideo = (url, title, episodeInfo = null) => {
+                if (!url) { alert('URL tidak tersedia'); return; }
+                setCurrentPlayer({ url, title, episode: episodeInfo });
+                setPlaying(true);
+            };
+
+            const playEpisode = (ep, index) => {
+                const url = ep.playerUrl || ep.streamUrl || ep.embed || ep.url;
+                if (url) {
+                    playVideo(url, item.title, { number: ep.number || index + 1, title: ep.title || `Episode ${index + 1}` });
+                } else { alert('Episode URL tidak tersedia'); }
+            };
+
+            if (loading) {
+                return (
+                    <div className="modal" onClick={onClose}>
+                        <div className="modal-content" onClick={e => e.stopPropagation()}>
+                            <div className="modal-body"><div className="skeleton" style={{ height: '200px' }}></div></div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <>
+                    {playing && currentPlayer?.url && (
+                        <div className="fullscreen-player">
+                            <div className="player-header">
+                                <div>
+                                    <div className="player-title">{currentPlayer.title}</div>
+                                    {currentPlayer.episode && (
+                                        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                            Episode {currentPlayer.episode.number}{currentPlayer.episode.title && ` - ${currentPlayer.episode.title}`}
+                                        </div>
+                                    )}
+                                </div>
+                                <button className="player-close" onClick={() => setPlaying(false)}>×</button>
+                            </div>
+                            <iframe src={currentPlayer.url} className="player-iframe" allowFullScreen></iframe>
+                        </div>
+                    )}
+
+                    <div className="modal" onClick={onClose}>
+                        <div className="modal-content" onClick={e => e.stopPropagation()}>
+                            <div className="modal-header" style={{ backgroundImage: `url(${item.poster})` }}>
+                                <button className="modal-close" onClick={onClose}>×</button>
+                            </div>
+                            <div className="modal-body">
+                                <h2 className="modal-title">{item.title}</h2>
+                                <div className="modal-meta">
+                                    {item.rating && <span>⭐ {item.rating}</span>}
+                                    {item.year && <span>{item.year}</span>}
+                                    {item.type && <span>{item.type === 'movie' ? '🎬 Film' : '📺 Series'}</span>}
+                                </div>
+                                {detail?.description && <p className="modal-desc">{detail.description}</p>}
+                                {detail?.genres && (
+                                    <div className="genres">
+                                        {detail.genres.map((g, i) => <span key={i} className="genre-tag">{g}</span>)}
+                                    </div>
+                                )}
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    {currentPlayer?.url ? (
+                                        <button className="btn btn-primary" onClick={() => playVideo(currentPlayer.url, item.title)}>▶ Tonton Sekarang</button>
+                                    ) : (
+                                        <div className="warning-box">⚠️ Video player tidak tersedia</div>
+                                    )}
+                                </div>
+                                {episodes.length > 0 && (
+                                    <div className="episodes">
+                                        <h3 className="episodes-title">📺 Episodes ({episodes.length})</h3>
+                                        <div className="episodes-grid">
+                                            {episodes.map((ep, i) => (
+                                                <div key={i} className="episode-item" onClick={() => playEpisode(ep, i)}>
+                                                    <div className="episode-number">Episode {ep.number || i + 1}</div>
+                                                    <div className="episode-title">{ep.title || `Episode ${i + 1}`}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>

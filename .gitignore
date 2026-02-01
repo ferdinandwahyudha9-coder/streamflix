@@ -1,0 +1,12 @@
+
+node_modules/
+dist/
+client/node_modules/
+client/dist/
+.env
+.DS_Store
+debug-fetch.js
+debug.txt
+debug_seasons.txt
+debug_trending.txt
+debug_movie.txt
